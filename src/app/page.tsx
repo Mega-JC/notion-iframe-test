@@ -1,103 +1,145 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface WindowDetails {
+  innerWidth?: number;
+  innerHeight?: number;
+  outerWidth?: number;
+  outerHeight?: number;
+  screenWidth?: number;
+  screenHeight?: number;
+  devicePixelRatio?: number;
+  isSecureContext?: boolean;
+  origin?: string;
+  userAgent?: string;
+  language?: string;
+  languages?: readonly string[];
+  platform?: string;
+  cookieEnabled?: boolean;
+}
+
+interface ParentDetails {
+  referrer?: string;
+  parentOrigin?: string;
+  parentLocationHref?: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isIframe, setIsIframe] = useState(false);
+  const [windowDetails, setWindowDetails] = useState<WindowDetails>({});
+  const [parentDetails, setParentDetails] = useState<ParentDetails>({});
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+  useEffect(() => {
+    // Check if running in an iframe
+    const inIframe = window.self !== window.top;
+    setIsIframe(inIframe);
+
+    // Get window details
+    setWindowDetails({
+      innerWidth: window.innerWidth,
+      innerHeight: window.innerHeight,
+      outerWidth: window.outerWidth,
+      outerHeight: window.outerHeight,
+      screenWidth: window.screen.width,
+      screenHeight: window.screen.height,
+      devicePixelRatio: window.devicePixelRatio,
+      isSecureContext: window.isSecureContext,
+      origin: window.origin,
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      languages: navigator.languages,
+      platform: navigator.platform,
+      cookieEnabled: navigator.cookieEnabled,
+    });
+
+    // Get parent window details (if accessible)
+    if (inIframe) {
+      try {
+        // Accessing window.parent.origin can throw a cross-origin error
+        // if the parent and child have different origins.
+        setParentDetails({
+          referrer: document.referrer,
+          parentOrigin: window.parent.origin,
+          parentLocationHref: window.parent.location.href, // May also be restricted
+        });
+      } catch (error) {
+        console.error("Error accessing parent window details:", error);
+        setParentDetails({
+          referrer: document.referrer,
+          parentOrigin: "Error: Cross-origin restriction",
+          parentLocationHref: "Error: Cross-origin restriction",
+        });
+      }
+    } else {
+      setParentDetails({
+        referrer: document.referrer,
+      });
+    }
+  }, []);
+
+  return (
+    <main className="min-h-screen p-8 font-sans">
+      <h1 className="text-3xl font-bold mb-8 text-center dark:text-white">
+        Iframe Behavior Tester
+      </h1>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <section className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl text-black dark:text-white font-semibold mb-4 border-b dark:border-gray-600 pb-2">
+            Current Window Details
+          </h2>
+          <p className="mb-2 text-sm text-gray-700 dark:text-gray-300">
+            <strong>Embedded in an iframe:</strong>{" "}
+            <span
+              className={
+                isIframe
+                  ? "text-green-600 dark:text-green-400 font-bold"
+                  : "text-red-600 dark:text-red-400 font-bold"
+              }
+            >
+              {isIframe ? "Yes" : "No"}
+            </span>
+          </p>
+          <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            {Object.entries(windowDetails).map(([key, value]) => (
+              <li key={key}>
+                <strong className="text-gray-900 dark:text-gray-100">
+                  {key}:
+                </strong>{" "}
+                {Array.isArray(value) ? value.join(", ") : String(value)}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="bg-slate-100 dark:bg-slate-800 p-6 rounded-lg shadow">
+          <h2 className="text-xl text-black dark:text-white font-semibold mb-4 border-b dark:border-gray-600 pb-2">
+            Parent Context
+          </h2>
+          <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+            {Object.entries(parentDetails).map(([key, value]) => (
+              <li key={key}>
+                <strong className="text-gray-900 dark:text-gray-100">
+                  {key}:
+                </strong>{" "}
+                {String(value)}
+              </li>
+            ))}
+          </ul>
+          {isIframe && (
+            <p className="mt-4 text-xs text-gray-600 dark:text-gray-400">
+              Note: Access to parent window properties might be restricted by
+              browser security policies (cross-origin).
+            </p>
+          )}
+        </section>
+      </div>
+
+      <footer className="mt-12 text-center text-xs text-gray-600 dark:text-gray-400">
+        <p>Reload the page to see updated values if window size changes.</p>
+        <p>Deployed on Vercel, for testing in Notion.</p>
       </footer>
-    </div>
+    </main>
   );
 }
